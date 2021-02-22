@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  nats:
+    image: nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+      - "6222:6222"
+  iterfable:
+    build:
+      context: .
+      dockerfile: Dockerfile.iterfable
+    ports:
+      - "3000:3000"
