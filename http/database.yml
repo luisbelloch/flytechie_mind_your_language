@@ -1,0 +1,7 @@
+host: 'localhost'
+adapter: 'postgresql'
+encoding: utf-8
+database: pancakes
+username: postgres
+password: pancakes
+pool: 8
