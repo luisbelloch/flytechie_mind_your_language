@@ -6,11 +6,11 @@ ruby:
 sql:
 	time sqlite3 pancake_orders.sqlite "select source_country, sum(price) from pancake_orders group by source_country;"
 
-.PHONY: python
+.PHONY: pandas
 pandas:
 	time python total_by_country_pandas.py
 
-.PHONY: python
+.PHONY: parquet
 parquet:
 	time python total_by_country_parquet.py
 
