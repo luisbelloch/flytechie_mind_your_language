@@ -39,3 +39,8 @@ empty_db:
 .PHONY: pool
 pool:
 	$(PSQL) -c "SELECT pid,application_name, client_addr, state, query FROM pg_stat_activity where datname = 'pancakes' and application_name != 'psql';"
+
+.PHONY: container_go
+container_go:
+	docker build -f Dockerfile.golang -t luisbelloch/flytechie_container_go .
+	dive luisbelloch/flytechie_container_go

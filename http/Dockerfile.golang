@@ -1,0 +1,10 @@
+FROM golang:1.15.8-alpine AS build
+WORKDIR /usr/local/src
+COPY . .
+RUN apk add git && \
+  go get github.com/segmentio/ksuid && \
+  go get github.com/lib/pq
+RUN go build -o http
+
+FROM scratch AS bin
+COPY --from=build /usr/local/src/http /
