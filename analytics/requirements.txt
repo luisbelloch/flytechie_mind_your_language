@@ -1,7 +1,7 @@
-numpy==1.20.1
-pandas==1.2.2
-pyarrow==3.0.0
-python-dateutil==2.8.1
-pytz==2021.1
-six==1.15.0
-tabulate==0.8.9
+numpy==1.23.1
+pandas==1.4.3
+pyarrow==8.0.0
+python-dateutil==2.8.2
+pytz==2022.1
+six==1.16.0
+tabulate==0.8.10

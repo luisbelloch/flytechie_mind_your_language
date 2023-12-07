@@ -36,6 +36,11 @@ pancake_orders.sqlite: pancake_orders.10M.csv
 pancake_orders.10M: pancake_orders.10M.csv dependencies
 	python to_parquet.py
 
+
+requirements.txt:
+	pip install pandas pyarrow tabulate
+	pip freeze > requirements.txt
+
 .PHONY: dependencies
-dependencies:
+dependencies: requirements.txt
 	pip install -r requirements.txt
