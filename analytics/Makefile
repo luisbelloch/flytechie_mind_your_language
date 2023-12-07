@@ -19,7 +19,7 @@ clean:
 	rm -f pancake_orders.*.csv *.sqlite pancake_orders.10M
 
 .PHONY: data
-data: pancake_orders.sqlite pancake_orders.10.csv pancake_orders.1M.csv
+data: pancake_orders.sqlite pancake_orders.10.csv pancake_orders.1M.csv pancake_orders.10M
 
 pancake_orders.10M.csv:
 	ruby place_orders.rb
