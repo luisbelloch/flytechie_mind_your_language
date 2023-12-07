@@ -1,6 +1,7 @@
 *.csv
 !country_codes.csv
 *.sqlite
+*.duckdb
 .direnv/
 .ipynb_checkpoints/
 pancake_orders.10M*

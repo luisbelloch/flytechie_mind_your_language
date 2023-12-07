@@ -36,6 +36,13 @@ pancake_orders.sqlite: pancake_orders.10M.csv
 pancake_orders.10M: pancake_orders.10M.csv dependencies
 	python to_parquet.py
 
+pancake_orders.duckdb:
+	duckdb pancake_orders.duckdb -c "CREATE TABLE pancake_orders AS SELECT * FROM 'pancake_orders.10M.csv'";
+
+.PHONY: duckdb
+duckdb: pancake_orders.duckdb
+	time duckdb -list pancake_orders.duckdb -c "SELECT source_country, SUM(price) FROM pancake_orders GROUP BY source_country;"
+
 .PHONY: questdb_boot_and_load
 questdb_boot_and_load:
 	docker stop questdb && docker rm questdb
