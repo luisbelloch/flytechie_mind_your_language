@@ -37,7 +37,7 @@ pancake_orders.10M.parquet: pancake_orders.10M.csv
 	python to_parquet.py
 
 pancake_orders.duckdb:
-	duckdb pancake_orders.duckdb -c "CREATE TABLE pancake_orders AS SELECT * FROM 'pancake_orders.10M.csv'";
+	duckdb $@ -c "CREATE TABLE pancake_orders AS SELECT * FROM 'pancake_orders.10M.csv'";
 
 .PHONY: duckdb
 duckdb: pancake_orders.duckdb
