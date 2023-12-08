@@ -46,17 +46,17 @@ duckdb: pancake_orders.duckdb
 .PHONY: questdb_boot_and_load
 questdb_boot_and_load:
 	docker stop questdb && docker rm questdb
-	docker run -d --name questdb -p 9000:9000 -p 9003:9003 questdb/questdb:7.3.5
-	while [[ "$$(curl -s http://localhost:9003/status)" != *"Status: Healthy"* ]]; do sleep 5; done
-	curl -F schema='[{"name":"ts", "type": "TIMESTAMP", "pattern": "yyyy-MM-dd''T''HH:mm:ss.UUUZ"}]' \
-		-F data=@pancake_orders.10M.csv 'http://localhost:9000/imp?overwrite=true&name=pancake_orders&timestamp=ts'
+	docker run -d --name questdb -p 19000:9000 -p 19003:9003 questdb/questdb:7.3.5
+	while [[ "$$(curl -s http://localhost:19003/status)" != *"Status: Healthy"* ]]; do sleep 5; done
+	curl -F schema='[{"name":"ts", "type": "TIMESTAMP", "pattern": "yyyy-MM-dd''T''HH:mm:ss.UUU"}]' \
+		-F data=@pancake_orders.10M.csv 'http://localhost:19000/imp?overwrite=true&name=pancake_orders&timestamp=ts'
 
 questdb:
 	curl -G \
   	--data-urlencode "query=select source_country, sum(price) from pancake_orders group by source_country;" \
   	--data-urlencode "count=true" \
   	--data-urlencode "timings=true" \
-  	http://localhost:9000/exec
+  	http://localhost:19000/exec
 
 CLICKHOUSE:=.clickhouse/clickhouse
 
