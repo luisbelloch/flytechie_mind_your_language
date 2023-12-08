@@ -33,7 +33,7 @@ pancake_orders.1M.csv: pancake_orders.10M.csv
 pancake_orders.sqlite: pancake_orders.10M.csv
 	sqlite3 -separator "," -header -batch $@ ".import pancake_orders.10M.csv pancake_orders"
 
-pancake_orders.10M: pancake_orders.10M.csv dependencies
+pancake_orders.10M.flat.parquet pancake_orders.10M: pancake_orders.10M.csv dependencies
 	python to_parquet.py
 
 pancake_orders.duckdb:
@@ -58,10 +58,42 @@ questdb:
   	--data-urlencode "timings=true" \
   	http://localhost:9000/exec
 
+CLICKHOUSE:=.clickhouse/clickhouse
+
+$(CLICKHOUSE):
+	mkdir -p .clickhouse
+	curl https://clickhouse.com/ | sh
+	mv clickhouse .clickhouse/
+
+.PHONY: clickhouse_local_csv
+clickhouse_local_csv: $(CLICKHOUSE)
+	time $(CLICKHOUSE) local -q "SELECT source_country, SUM(price), bar(sum(price), 230000, 250000, 100) FROM file('pancake_orders.10M.csv') GROUP BY source_country;"
+
+.PHONY: clickhouse_local_csv
+clickhouse_local_parquet: $(CLICKHOUSE)
+	time $(CLICKHOUSE) local -q "SELECT source_country, SUM(price) FROM file('pancake_orders.10M.flat.parquet', Parquet) GROUP BY source_country;"
+
+.clickhouse/user_files/pancake_orders.10M.flat.parquet:
+	ln -s ../../pancake_orders.10M.flat.parquet .clickhouse/user_files/pancake_orders.10M.flat.parquet
+
+.PHONY: clickhouse_server
+clickhouse_server: $(CLICKHOUSE)
+	cd .clickhouse && ./clickhouse server
+
+.PHONY: clickhouse_load
+clickhouse_load: $(CLICKHOUSE) .clickhouse/user_files/pancake_orders.10M.flat.parquet
+	$(CLICKHOUSE) client -h localhost --queries-file clickhouse_load.sql
+
+.PHONY: clickhouse_bench
+clickhouse_bench: $(CLICKHOUSE)
+	time $(CLICKHOUSE) client -h localhost --query "select source_country, sum(price) from pancake_orders group by source_country;"
+
 requirements.txt:
 	pip install pandas pyarrow tabulate
 	pip freeze > requirements.txt
 
-.PHONY: dependencies
-dependencies: requirements.txt
+.direnv/python-3.10.5/lib/python3.10/site-packages/pandas/_version.py:
 	pip install -r requirements.txt
+
+.PHONY: dependencies
+dependencies: requirements.txt .direnv/python-3.10.5/lib/python3.10/site-packages/pandas/_version.py

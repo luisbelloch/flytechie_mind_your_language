@@ -5,3 +5,4 @@
 .direnv/
 .ipynb_checkpoints/
 pancake_orders.10M*
+.clickhouse/
