@@ -1,14 +1,14 @@
 .PHONY: ruby
 ruby:
-	time ruby total_by_country.rb
+	ruby total_by_country.rb
 
 .PHONY: sql
 sql:
-	time sqlite3 pancake_orders.sqlite "select source_country, sum(price) from pancake_orders group by source_country;"
+	sqlite3 pancake_orders.sqlite "select source_country, sum(price) from pancake_orders group by source_country;"
 
 .PHONY: pandas
 pandas:
-	time python total_by_country_pandas.py
+	python total_by_country_pandas.py
 
 .PHONY: pyarrow
 pyarrow:
@@ -41,7 +41,7 @@ pancake_orders.duckdb:
 
 .PHONY: duckdb
 duckdb: pancake_orders.duckdb
-	time duckdb -list pancake_orders.duckdb -c "SELECT source_country, SUM(price) FROM pancake_orders GROUP BY source_country;"
+	duckdb -list pancake_orders.duckdb -c "SELECT source_country, SUM(price) FROM pancake_orders GROUP BY source_country;"
 
 .PHONY: questdb_boot_and_load
 questdb_boot_and_load:
@@ -52,7 +52,7 @@ questdb_boot_and_load:
 		-F data=@pancake_orders.10M.csv 'http://localhost:9000/imp?overwrite=true&name=pancake_orders&timestamp=ts'
 
 questdb:
-	time curl -G \
+	curl -G \
   	--data-urlencode "query=select source_country, sum(price) from pancake_orders group by source_country;" \
   	--data-urlencode "count=true" \
   	--data-urlencode "timings=true" \
@@ -84,9 +84,9 @@ clickhouse_server: $(CLICKHOUSE)
 clickhouse_load: $(CLICKHOUSE) .clickhouse/user_files/pancake_orders.10M.parquet
 	$(CLICKHOUSE) client -h localhost --queries-file clickhouse_load.sql
 
-.PHONY: clickhouse_bench
-clickhouse_bench: $(CLICKHOUSE)
-	time $(CLICKHOUSE) client -h localhost --query "select source_country, sum(price) from pancake_orders group by source_country;"
+.PHONY: clickhouse
+clickhouse: $(CLICKHOUSE)
+	$(CLICKHOUSE) client -h localhost --query "select source_country, sum(price) from pancake_orders group by source_country;"
 
 requirements.txt:
 	pip install pandas pyarrow
@@ -96,5 +96,6 @@ requirements.txt:
 dependencies: requirements.txt
 	pip install -r requirements.txt
 
-.PHONY: dependencies
-dependencies: requirements.txt .direnv/python-3.10.5/lib/python3.10/site-packages/pandas/_version.py
+.PHONY: benchmark
+benchmark:
+	hyperfine --warmup 1 --runs 3 "make clickhouse_local_parquet" "make clickhouse_local_csv" "make clickhouse" "make duckdb" "make sql" "make pandas" "make pyarrow" "make questdb"
