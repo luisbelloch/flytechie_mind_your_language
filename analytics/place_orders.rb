@@ -14,6 +14,6 @@ CSV.open("./pancake_orders.10M.csv", "wb") do |csv|
   (1..10_000_000).each do |i|
     now = now + (60 * rand(0..2.0))
     coupon_code = SecureRandom.hex(3) if rand > 0.9
-    csv << [now.strftime('%Y-%m-%dT%H:%M:%S.%L%z'), prices.sample, count.sample, country_codes.sample, coupon_code]
+    csv << [now.strftime("%Y-%m-%dT%H:%M:%S.%L"), prices.sample, count.sample, country_codes.sample, coupon_code]
   end
 end
