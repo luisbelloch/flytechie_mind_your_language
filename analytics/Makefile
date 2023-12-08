@@ -89,10 +89,11 @@ clickhouse_bench: $(CLICKHOUSE)
 	time $(CLICKHOUSE) client -h localhost --query "select source_country, sum(price) from pancake_orders group by source_country;"
 
 requirements.txt:
-	pip install pandas pyarrow tabulate
+	pip install pandas pyarrow
 	pip freeze > requirements.txt
 
-.direnv/python-3.10.5/lib/python3.10/site-packages/pandas/_version.py:
+.PHONY: dependencies
+dependencies: requirements.txt
 	pip install -r requirements.txt
 
 .PHONY: dependencies
