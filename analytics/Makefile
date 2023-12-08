@@ -10,16 +10,16 @@ sql:
 pandas:
 	time python total_by_country_pandas.py
 
-.PHONY: parquet
-parquet:
-	time python total_by_country_parquet.py
+.PHONY: pyarrow
+pyarrow:
+	python total_by_country_pyarrow.py
 
 .PHONY: clean
 clean:
-	rm -f pancake_orders.*.csv *.sqlite pancake_orders.10M
+	rm -f pancake_orders.*.csv *.sqlite pancake_orders.10M.parquet
 
 .PHONY: data
-data: pancake_orders.sqlite pancake_orders.10.csv pancake_orders.1M.csv pancake_orders.10M
+data: pancake_orders.sqlite pancake_orders.10.csv pancake_orders.1M.csv pancake_orders.10M.parquet
 
 pancake_orders.10M.csv:
 	ruby place_orders.rb
@@ -33,7 +33,7 @@ pancake_orders.1M.csv: pancake_orders.10M.csv
 pancake_orders.sqlite: pancake_orders.10M.csv
 	sqlite3 -separator "," -header -batch $@ ".import pancake_orders.10M.csv pancake_orders"
 
-pancake_orders.10M.flat.parquet pancake_orders.10M: pancake_orders.10M.csv dependencies
+pancake_orders.10M.parquet: pancake_orders.10M.csv
 	python to_parquet.py
 
 pancake_orders.duckdb:
@@ -67,21 +67,21 @@ $(CLICKHOUSE):
 
 .PHONY: clickhouse_local_csv
 clickhouse_local_csv: $(CLICKHOUSE)
-	time $(CLICKHOUSE) local -q "SELECT source_country, SUM(price), bar(sum(price), 230000, 250000, 100) FROM file('pancake_orders.10M.csv') GROUP BY source_country;"
+	$(CLICKHOUSE) local -q "SELECT source_country, SUM(price) FROM file('pancake_orders.10M.csv') GROUP BY source_country;"
 
 .PHONY: clickhouse_local_csv
 clickhouse_local_parquet: $(CLICKHOUSE)
-	time $(CLICKHOUSE) local -q "SELECT source_country, SUM(price) FROM file('pancake_orders.10M.flat.parquet', Parquet) GROUP BY source_country;"
+	$(CLICKHOUSE) local -q "SELECT source_country, SUM(price) FROM file('pancake_orders.10M.parquet', Parquet) GROUP BY source_country;"
 
-.clickhouse/user_files/pancake_orders.10M.flat.parquet:
-	ln -s ../../pancake_orders.10M.flat.parquet .clickhouse/user_files/pancake_orders.10M.flat.parquet
+.clickhouse/user_files/pancake_orders.10M.parquet:
+	ln -s ../../pancake_orders.10M.parquet $@
 
 .PHONY: clickhouse_server
 clickhouse_server: $(CLICKHOUSE)
 	cd .clickhouse && ./clickhouse server
 
 .PHONY: clickhouse_load
-clickhouse_load: $(CLICKHOUSE) .clickhouse/user_files/pancake_orders.10M.flat.parquet
+clickhouse_load: $(CLICKHOUSE) .clickhouse/user_files/pancake_orders.10M.parquet
 	$(CLICKHOUSE) client -h localhost --queries-file clickhouse_load.sql
 
 .PHONY: clickhouse_bench
